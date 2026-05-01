@@ -8,6 +8,10 @@ El objetivo del modelo es representar de forma estructurada la información rela
 
 El modelo está diseñado siguiendo criterios de normalización hasta **Tercera Forma Normal (3NF)**, con el fin de reducir redundancias, mejorar la consistencia de los datos y facilitar su análisis posterior en **BigQuery**.
 
+El diagrama ER visual utiliza nombres conceptuales en español para facilitar la comprensión del modelo durante la presentación. Sin embargo, la implementación técnica en BigQuery utiliza nombres físicos en inglés para las tablas: `customers`, `categories`, `products`, `orders`, `order_items`, `payments` y `reviews`.
+
+Este modelo ya fue implementado en BigQuery dentro del proyecto `techzone-494713`, en el dataset `TechZone`.
+
 ---
 
 ## 2. Entidades principales
@@ -26,7 +30,27 @@ El modelo está formado por las siguientes tablas:
 
 ---
 
-## 3. Diagrama lógico del modelo
+## 3. Nomenclatura conceptual y física
+
+Durante el diseño del modelo se utilizan nombres conceptuales en español para facilitar la interpretación del diagrama ER visual.
+
+No obstante, la implementación técnica en BigQuery utiliza nombres físicos en inglés, siguiendo una nomenclatura más estándar para bases de datos y entornos analíticos.
+
+| Nombre conceptual en el diagrama | Nombre físico en BigQuery |
+|---|---|
+| Clientes | `customers` |
+| Categorías | `categories` |
+| Productos | `products` |
+| Pedidos | `orders` |
+| Líneas de pedido | `order_items` |
+| Pagos | `payments` |
+| Valoraciones | `reviews` |
+
+El modelo fue implementado en BigQuery dentro del proyecto `techzone-494713`, en el dataset `TechZone`.
+
+---
+
+## 4. Diagrama lógico del modelo
 
 Relaciones principales del modelo:
 
@@ -54,9 +78,9 @@ Esta relación se resuelve mediante la tabla intermedia `order_items`, ya que:
 
 ---
 
-## 4. Tablas y campos
+## 5. Tablas y campos
 
-### 4.1 Tabla `customers`
+### 5.1 Tabla `customers`
 
 Contiene la información básica de contacto, localización y registro de los clientes.
 
@@ -84,7 +108,7 @@ El campo `email` se considera obligatorio porque es un dato básico de identific
 
 ---
 
-### 4.2 Tabla `categories`
+### 5.2 Tabla `categories`
 
 Contiene la clasificación de los productos del e-commerce.
 
@@ -104,7 +128,7 @@ La tabla `categories` permite evitar repetir el nombre y la descripción de la c
 
 ---
 
-### 4.3 Tabla `products`
+### 5.3 Tabla `products`
 
 Contiene el catálogo de productos disponibles en el e-commerce.
 
@@ -132,7 +156,7 @@ El campo `is_active` permite mantener productos históricos en la base de datos 
 
 ---
 
-### 4.4 Tabla `orders`
+### 5.4 Tabla `orders`
 
 Contiene los pedidos realizados por los clientes.
 
@@ -172,7 +196,7 @@ Los datos de envío se almacenan en `orders` porque representan la dirección co
 
 ---
 
-### 4.5 Tabla `order_items`
+### 5.5 Tabla `order_items`
 
 Contiene el detalle de los productos incluidos en cada pedido.
 
@@ -209,7 +233,7 @@ La tabla `order_items` permite calcular métricas como:
 
 ---
 
-### 4.6 Tabla `payments`
+### 5.6 Tabla `payments`
 
 Contiene la información de pagos asociados a los pedidos.
 
@@ -258,7 +282,7 @@ El campo `payment_date` se deja como opcional porque puede no existir si el pago
 
 ---
 
-### 4.7 Tabla `reviews`
+### 5.7 Tabla `reviews`
 
 Contiene las valoraciones realizadas por los clientes sobre productos comprados.
 
@@ -289,7 +313,7 @@ La relación entre `order_items` y `reviews` es de tipo **1:0..1**, ya que una l
 
 ---
 
-## 5. Relaciones entre tablas
+## 6. Relaciones entre tablas
 
 | Relación | Cardinalidad | Descripción |
 |---|---|---|
@@ -300,11 +324,13 @@ La relación entre `order_items` y `reviews` es de tipo **1:0..1**, ya que una l
 | `orders` → `payments` | 1:N | Un pedido puede tener varios pagos o intentos de pago |
 | `order_items` → `reviews` | 1:0..1 | Una línea de pedido puede tener ninguna o una valoración |
 
+La relación `order_items` → `reviews` se representa como `1:0..1`, lo que equivale a una relación **1:1 opcional**: una línea de pedido puede no tener valoración o tener como máximo una.
+
 ---
 
-## 6. Campos obligatorios y opcionales
+## 7. Campos obligatorios y opcionales
 
-### 6.1 Campos opcionales
+### 7.1 Campos opcionales
 
 Los siguientes campos pueden aceptar valores `NULL`:
 
@@ -319,7 +345,7 @@ Los siguientes campos pueden aceptar valores `NULL`:
 | `payments` | `payment_date` | Puede no existir si el pago está pendiente o fallido |
 | `reviews` | `comment` | El cliente puede valorar sin escribir comentario |
 
-### 6.2 Campos obligatorios
+### 7.2 Campos obligatorios
 
 El resto de campos se consideran obligatorios porque son necesarios para:
 
@@ -331,7 +357,7 @@ El resto de campos se consideran obligatorios porque son necesarios para:
 
 ---
 
-## 7. Justificación de tipos de datos en BigQuery
+## 8. Justificación de tipos de datos en BigQuery
 
 | Tipo BigQuery | Uso en el modelo |
 |---|---|
@@ -355,9 +381,9 @@ Se utiliza `TIMESTAMP` para fechas con hora, como `registered_at`, `order_date`,
 
 ---
 
-## 8. Decisiones de diseño ER
+## 9. Decisiones de diseño ER
 
-### 8.1 Separación de entidades principales
+### 9.1 Separación de entidades principales
 
 Se han separado las entidades principales del negocio para evitar duplicidad de información y mejorar la trazabilidad:
 
@@ -373,7 +399,7 @@ Esta separación permite que cada tabla represente una única entidad o concepto
 
 ---
 
-### 8.2 Relación entre clientes y pedidos
+### 9.2 Relación entre clientes y pedidos
 
 Un cliente puede realizar varios pedidos, pero cada pedido pertenece a un único cliente.
 
@@ -389,7 +415,7 @@ Esta decisión evita repetir los datos del cliente en cada pedido. Por ejemplo, 
 
 ---
 
-### 8.3 Relación entre categorías y productos
+### 9.3 Relación entre categorías y productos
 
 Una categoría puede contener varios productos, pero cada producto pertenece a una única categoría.
 
@@ -405,7 +431,7 @@ Esta decisión evita repetir el nombre y la descripción de la categoría en cad
 
 ---
 
-### 8.4 Relación entre pedidos y productos
+### 9.4 Relación entre pedidos y productos
 
 La relación entre pedidos y productos es de tipo **N:M**:
 
@@ -428,7 +454,7 @@ Estos campos no pertenecen únicamente al pedido ni únicamente al producto, sin
 
 ---
 
-### 8.5 Separación de pagos respecto a pedidos
+### 9.5 Separación de pagos respecto a pedidos
 
 Los pagos se almacenan en una tabla independiente llamada `payments`.
 
@@ -449,7 +475,7 @@ Esto hace que el modelo sea más flexible y más cercano al funcionamiento real 
 
 ---
 
-### 8.6 Valoraciones asociadas a líneas de pedido
+### 9.6 Valoraciones asociadas a líneas de pedido
 
 Las valoraciones se relacionan con `order_items` en lugar de relacionarse directamente con `orders` o `products`.
 
@@ -465,7 +491,7 @@ Si la valoración se asociara solo al pedido, no sería posible saber qué produ
 
 ---
 
-## 9. Justificación de normalización hasta 3NF
+## 10. Justificación de normalización hasta 3NF
 
 El modelo está normalizado hasta **Tercera Forma Normal (3NF)**.
 
@@ -478,7 +504,7 @@ Esto significa que el diseño evita:
 
 ---
 
-### 9.1 Primera Forma Normal, 1NF
+### 10.1 Primera Forma Normal, 1NF
 
 El modelo cumple la Primera Forma Normal porque todos los campos contienen valores atómicos.
 
@@ -515,7 +541,7 @@ De esta forma, cada fila de `order_items` representa un único producto dentro d
 
 ---
 
-### 9.2 Segunda Forma Normal, 2NF
+### 10.2 Segunda Forma Normal, 2NF
 
 El modelo cumple la Segunda Forma Normal porque los atributos dependen completamente de la clave primaria de cada tabla.
 
@@ -544,7 +570,7 @@ Esto evita dependencias parciales y duplicidad de información.
 
 ---
 
-### 9.3 Tercera Forma Normal, 3NF
+### 10.3 Tercera Forma Normal, 3NF
 
 El modelo cumple la Tercera Forma Normal porque no existen dependencias transitivas entre campos no clave.
 
@@ -595,7 +621,7 @@ Esto evita que, si cambia el email o algún dato del cliente, haya que actualiza
 
 ---
 
-## 10. Consideraciones para BigQuery
+## 11. Consideraciones para BigQuery
 
 Aunque BigQuery permite definir claves primarias y foráneas, estas restricciones no se aplican de la misma forma que en bases de datos transaccionales tradicionales. Aun así, se documentan en el modelo para mantener claridad en el diseño lógico y facilitar el análisis.
 
@@ -613,7 +639,7 @@ El modelo está pensado para poder utilizarse en BigQuery con fines analíticos,
 
 ---
 
-## 11. Ejemplos de métricas derivadas
+## 12. Ejemplos de métricas derivadas
 
 A partir del modelo se pueden calcular métricas importantes para el negocio.
 
@@ -643,7 +669,7 @@ purchase_unit_price - cost_price
 
 ---
 
-## 12. Resumen de claves
+## 13. Resumen de claves
 
 | Tabla | Primary Key | Foreign Keys |
 |---|---|---|
@@ -657,9 +683,9 @@ purchase_unit_price - cost_price
 
 ---
 
-## 13. Resumen de tablas para BigQuery
+## 14. Resumen de tablas para BigQuery
 
-### 13.1 `customers`
+### 14.1 `customers`
 
 ```sql
 customer_id INT64 NOT NULL,
@@ -673,7 +699,7 @@ acquisition_channel STRING,
 registered_at TIMESTAMP NOT NULL
 ```
 
-### 13.2 `categories`
+### 14.2 `categories`
 
 ```sql
 category_id INT64 NOT NULL,
@@ -681,7 +707,7 @@ name STRING NOT NULL,
 description STRING
 ```
 
-### 13.3 `products`
+### 14.3 `products`
 
 ```sql
 product_id INT64 NOT NULL,
@@ -694,7 +720,7 @@ stock_qty INT64 NOT NULL,
 is_active BOOL NOT NULL
 ```
 
-### 13.4 `orders`
+### 14.4 `orders`
 
 ```sql
 order_id INT64 NOT NULL,
@@ -708,7 +734,7 @@ shipped_at TIMESTAMP,
 delivered_at TIMESTAMP
 ```
 
-### 13.5 `order_items`
+### 14.5 `order_items`
 
 ```sql
 order_item_id INT64 NOT NULL,
@@ -719,7 +745,7 @@ purchase_unit_price NUMERIC NOT NULL,
 discount_amount NUMERIC NOT NULL
 ```
 
-### 13.6 `payments`
+### 14.6 `payments`
 
 ```sql
 payment_id INT64 NOT NULL,
@@ -730,7 +756,7 @@ amount NUMERIC NOT NULL,
 payment_date TIMESTAMP
 ```
 
-### 13.7 `reviews`
+### 14.7 `reviews`
 
 ```sql
 review_id INT64 NOT NULL,
@@ -742,7 +768,7 @@ review_date TIMESTAMP NOT NULL
 
 ---
 
-## 14. Ejemplo de definición SQL para BigQuery
+## 15. Ejemplo de definición SQL para BigQuery
 
 A continuación se muestra una posible definición de las tablas en BigQuery.
 
@@ -830,7 +856,7 @@ CREATE TABLE `project.dataset.reviews` (
 
 ---
 
-## 15. Conclusión
+## 16. Conclusión
 
 El modelo propuesto permite representar correctamente el funcionamiento básico de un e-commerce, manteniendo una estructura clara, escalable y normalizada hasta **3NF**.
 
